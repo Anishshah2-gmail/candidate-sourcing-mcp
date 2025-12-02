@@ -20,6 +20,7 @@ import {
   getAllTagsTool,
   exportCandidatesTool,
   setLastSearchResults,
+  getProviderStatusTool,
 } from "./tools/index.js";
 import { Candidate } from "./types/index.js";
 
@@ -252,6 +253,33 @@ server.tool(
     try {
       const input = exportCandidatesTool.inputSchema.parse(args);
       const result = await exportCandidatesTool.handler(input);
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return {
+        content: [{ type: "text" as const, text: `Error: ${message}` }],
+        isError: true,
+      };
+    }
+  }
+);
+
+// 9. Get Provider Status
+server.tool(
+  getProviderStatusTool.name,
+  getProviderStatusTool.description,
+  getProviderStatusTool.inputSchema.shape,
+  async () => {
+    try {
+      const result = await getProviderStatusTool.handler();
 
       return {
         content: [

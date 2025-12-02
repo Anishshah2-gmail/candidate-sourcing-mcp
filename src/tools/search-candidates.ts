@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import { getLinkedInService } from "../services/linkedin-api.js";
+import { getDataProvider } from "../services/provider-factory.js";
 import { SearchFilters, SeniorityLevel } from "../types/index.js";
 
 export const searchCandidatesSchema = z.object({
@@ -85,7 +85,7 @@ export const searchCandidatesSchema = z.object({
 export type SearchCandidatesInput = z.infer<typeof searchCandidatesSchema>;
 
 export async function searchCandidates(input: SearchCandidatesInput) {
-  const linkedIn = getLinkedInService();
+  const provider = getDataProvider();
 
   // Transform input to internal filter format
   const filters: SearchFilters = {
@@ -104,7 +104,7 @@ export async function searchCandidates(input: SearchCandidatesInput) {
     cursor: input.cursor,
   };
 
-  const result = await linkedIn.searchCandidates(filters);
+  const result = await provider.searchCandidates(filters);
 
   // Format response for MCP
   return {

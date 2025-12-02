@@ -11,6 +11,8 @@ import {
   SearchFilters,
   SearchResult,
   SeniorityLevel,
+  IDataProvider,
+  ProviderStatus,
 } from "../types/index.js";
 
 // LinkedIn API configuration
@@ -92,13 +94,32 @@ const SENIORITY_MAP: Record<SeniorityLevel, string[]> = {
   owner: ["12"],
 };
 
-export class LinkedInApiService {
+export class LinkedInApiService implements IDataProvider {
+  readonly providerName = "linkedin" as const;
   private config: LinkedInConfig;
   private baseUrl = "https://api.linkedin.com/v2";
   private talentBaseUrl = "https://api.linkedin.com/v2"; // Talent Solutions uses same base
+  private rateLimitRemaining?: number;
+  private rateLimitReset?: string;
 
   constructor(config: LinkedInConfig) {
     this.config = config;
+  }
+
+  isConfigured(): boolean {
+    return !!(this.config.clientId && this.config.clientSecret && this.config.accessToken);
+  }
+
+  getStatus(): ProviderStatus {
+    return {
+      provider: "linkedin",
+      configured: this.isConfigured(),
+      rateLimitRemaining: this.rateLimitRemaining,
+      rateLimitReset: this.rateLimitReset,
+      message: this.isConfigured()
+        ? "LinkedIn Talent API configured and ready"
+        : "Missing LinkedIn API credentials (LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET, LINKEDIN_ACCESS_TOKEN)",
+    };
   }
 
   /**

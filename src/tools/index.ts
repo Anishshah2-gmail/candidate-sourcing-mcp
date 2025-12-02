@@ -12,3 +12,4 @@ export {
   setLastSearchResults,
   getLastSearchResults,
 } from "./export-candidates.js";
+export { getProviderStatusTool, getProviderStatus } from "./provider-status.js";

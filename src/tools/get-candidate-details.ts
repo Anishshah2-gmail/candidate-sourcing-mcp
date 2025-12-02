@@ -4,7 +4,7 @@
  */
 
 import { z } from "zod";
-import { getLinkedInService } from "../services/linkedin-api.js";
+import { getDataProvider } from "../services/provider-factory.js";
 
 export const getCandidateDetailsSchema = z.object({
   source_id: z
@@ -15,9 +15,9 @@ export const getCandidateDetailsSchema = z.object({
 export type GetCandidateDetailsInput = z.infer<typeof getCandidateDetailsSchema>;
 
 export async function getCandidateDetails(input: GetCandidateDetailsInput) {
-  const linkedIn = getLinkedInService();
+  const provider = getDataProvider();
 
-  const candidate = await linkedIn.getCandidateDetails(input.source_id);
+  const candidate = await provider.getCandidateDetails(input.source_id);
 
   // Format response for MCP
   return {
