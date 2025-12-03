@@ -2,9 +2,21 @@
 
 An MCP (Model Context Protocol) server for LinkedIn-based candidate sourcing, designed to work with Claude Desktop.
 
+## ⚠️ Important: Provider Status Update (July 2025)
+
+**Proxycurl has shut down** due to a LinkedIn lawsuit (announced July 4, 2025).
+
+**Current recommended approach:**
+1. **LinkedIn Talent Solutions API** - Contact your company's LinkedIn admin for API access
+2. **Alternative providers** - Bright Data, ScrapIn (see [Alternatives](#alternative-providers) section)
+
+The multi-provider architecture allows easy switching when you have API access.
+
+---
+
 ## Features
 
-- **Multi-Provider Support** - Switch between Proxycurl (recommended) and LinkedIn Talent API
+- **Multi-Provider Architecture** - Easily switch between data providers
 - **LinkedIn Search** - Search candidates with filters (titles, skills, locations, experience, seniority, companies, industries)
 - **Detailed Profiles** - Fetch full profile information for candidates
 - **Bookmarks** - Save candidates with notes and tags for later review
@@ -12,10 +24,11 @@ An MCP (Model Context Protocol) server for LinkedIn-based candidate sourcing, de
 
 ## Data Providers
 
-| Provider | Best For | Setup Difficulty | Cost |
-|----------|----------|------------------|------|
-| **Proxycurl** (Default) | Quick start, most users | Easy - just API key | ~$0.01-0.03/profile |
-| **LinkedIn Talent API** | Enterprise, existing partnership | Hard - requires LinkedIn partnership | Enterprise pricing |
+| Provider | Status | Setup | Notes |
+|----------|--------|-------|-------|
+| **LinkedIn Talent API** | ✅ Recommended | Requires partnership | Contact your LinkedIn Talent Solutions admin |
+| **Proxycurl** | ❌ Shutdown | N/A | Ceased operations July 2025 |
+| **Bright Data** | 🔄 Can be added | API key | Alternative option |
 
 ## MCP Tools (9 total)
 
@@ -47,39 +60,20 @@ npm run build
 
 ## Configuration
 
-### Option A: Proxycurl (Recommended - Quick Start)
+### LinkedIn Talent Solutions API (Recommended)
 
-1. **Get Proxycurl API Key**
-   - Sign up at [https://nubela.co/proxycurl](https://nubela.co/proxycurl)
-   - Free tier available for testing
-   - Pay-as-you-go: ~$0.01-0.03 per profile
+> **Note:** Requires LinkedIn Recruiter System Connect API access through your company's LinkedIn partnership.
+
+1. **Get LinkedIn API Credentials** from your LinkedIn Talent Solutions admin:
+   - Client ID
+   - Client Secret
+   - Access Token
+   - Refresh Token (optional)
 
 2. **Configure Claude Desktop**
 
    **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
    **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
-
-   ```json
-   {
-     "mcpServers": {
-       "candidate-sourcing": {
-         "command": "node",
-         "args": ["/path/to/candidate-sourcing-mcp/dist/index.js"],
-         "env": {
-           "DATA_PROVIDER": "proxycurl",
-           "PROXYCURL_API_KEY": "your_proxycurl_api_key"
-         }
-       }
-     }
-   }
-   ```
-
-### Option B: LinkedIn Talent Solutions API
-
-> **Note:** Requires LinkedIn partnership agreement. Most users should start with Proxycurl.
-
-1. **Get LinkedIn API Credentials** from your LinkedIn Talent Solutions admin
-2. **Configure Claude Desktop:**
 
    ```json
    {
@@ -99,9 +93,9 @@ npm run build
    }
    ```
 
-### 3. Restart Claude Desktop
+3. **Restart Claude Desktop**
 
-Completely quit and reopen Claude Desktop for changes to take effect.
+   Completely quit and reopen Claude Desktop for changes to take effect.
 
 ## Usage
 
@@ -125,15 +119,6 @@ Claude will:
 "What's my current provider status?"
 ```
 
-## Proxycurl Credit Costs
-
-| Operation | Credits |
-|-----------|---------|
-| Person Search (per result) | 3 |
-| Profile Details | 1 |
-| Role Lookup | 3 |
-| Person Lookup | 2 |
-
 ## Architecture
 
 ```
@@ -147,23 +132,27 @@ Claude will:
 │  Tools: search, details, bookmark, export, status           │
 ├─────────────────────────────────────────────────────────────┤
 │                   Provider Factory                           │
-│         ┌──────────────┴──────────────┐                     │
-│         ▼                              ▼                     │
-│   ┌──────────┐                  ┌────────────┐              │
-│   │Proxycurl │                  │  LinkedIn  │              │
-│   │  API     │                  │ Talent API │              │
-│   └──────────┘                  └────────────┘              │
+│                         │                                    │
+│                         ▼                                    │
+│                  ┌────────────┐                             │
+│                  │  LinkedIn  │                             │
+│                  │ Talent API │                             │
+│                  └────────────┘                             │
+│           (More providers can be added)                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Switching Providers
+## Alternative Providers
 
-To switch between providers, update the `DATA_PROVIDER` environment variable:
+If LinkedIn Talent API access is not available, these alternatives exist (implementation can be added):
 
-- `DATA_PROVIDER=proxycurl` - Use Proxycurl (default)
-- `DATA_PROVIDER=linkedin` - Use LinkedIn Talent API
+| Provider | Website | Notes |
+|----------|---------|-------|
+| Bright Data | [brightdata.com](https://brightdata.com) | Largest, won court cases |
+| ScrapIn | [scrapin.io](https://scrapin.io) | Real-time, no account needed |
+| People Data Labs | [peopledatalabs.com](https://peopledatalabs.com) | Enrichment API |
 
-Then restart Claude Desktop.
+⚠️ **Legal Note:** Third-party scraping services may face legal challenges from LinkedIn. Official LinkedIn API is the safest approach.
 
 ## Development
 
@@ -178,19 +167,49 @@ npm run inspector
 npm run build
 ```
 
+## Adding a New Provider
+
+The multi-provider architecture makes it easy to add new data sources:
+
+1. Create a new service in `src/services/` implementing `IDataProvider` interface
+2. Add the provider type to `src/types/provider.ts`
+3. Update `src/services/provider-factory.ts` to include the new provider
+4. Rebuild: `npm run build`
+
 ## Troubleshooting
 
 **"Provider not configured" error:**
-- Check that your API key/credentials are set in Claude Desktop config
+- Check that your API credentials are set in Claude Desktop config
+- Verify the `DATA_PROVIDER` environment variable is set correctly
 - Restart Claude Desktop after config changes
 
 **"Rate limit exceeded":**
 - Wait a few minutes before making more requests
 - Consider reducing `page_size` in searches
 
-**Credits running low (Proxycurl):**
-- Check balance at [https://nubela.co/proxycurl/dashboard](https://nubela.co/proxycurl/dashboard)
-- Use `get_provider_status` tool to check remaining credits
+**LinkedIn API errors:**
+- Verify your access token is valid and not expired
+- Check with your LinkedIn admin for API access status
+
+## Setup on a New Machine
+
+```bash
+# 1. Install Node.js (if not installed)
+# macOS with Homebrew:
+brew install node
+
+# 2. Clone the repository
+git clone https://github.com/Anishshah2-gmail/candidate-sourcing-mcp.git
+cd candidate-sourcing-mcp
+
+# 3. Install and build
+npm install
+npm run build
+
+# 4. Configure Claude Desktop (see Configuration section above)
+
+# 5. Restart Claude Desktop
+```
 
 ## License
 

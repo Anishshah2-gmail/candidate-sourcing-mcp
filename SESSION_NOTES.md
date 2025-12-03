@@ -1,219 +1,196 @@
 # Candidate Sourcing MCP Server - Session Notes
 
 **Last Updated:** December 3, 2025
-**Status:** Ready to use with Proxycurl (recommended) or LinkedIn Talent API
+**Status:** Ready for LinkedIn Talent API (Proxycurl shutdown)
 
 ---
 
-## What Was Built
+## ⚠️ Important Update
 
-A complete MCP server for LinkedIn-based candidate sourcing with **multi-provider architecture**.
+**Proxycurl shut down on July 4, 2025** due to a LinkedIn lawsuit.
 
-### Repository
+**Current path forward:** Get LinkedIn Talent Solutions API access through your company's LinkedIn admin.
+
+---
+
+## Repository
+
 ```
 https://github.com/Anishshah2-gmail/candidate-sourcing-mcp
 ```
 
-### Project Location (Local)
-```
-/Users/anish/Projects/candidate-sourcing-mcp/
-```
-
 ---
 
-## Architecture: Multi-Provider Support
+## Setup on a New Machine (Step-by-Step)
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Claude Desktop                            │
-└─────────────────────────┬───────────────────────────────────┘
-                          │ MCP Protocol
-┌─────────────────────────▼───────────────────────────────────┐
-│              Candidate Sourcing MCP Server                   │
-├─────────────────────────────────────────────────────────────┤
-│  Tools: search, details, bookmark, export, status           │
-├─────────────────────────────────────────────────────────────┤
-│                   Provider Factory                           │
-│         ┌──────────────┴──────────────┐                     │
-│         ▼                              ▼                     │
-│   ┌──────────┐                  ┌────────────┐              │
-│   │Proxycurl │ (default)        │  LinkedIn  │              │
-│   │  API     │                  │ Talent API │              │
-│   └──────────┘                  └────────────┘              │
-└─────────────────────────────────────────────────────────────┘
-```
+### Prerequisites
+- macOS or Windows
+- Node.js 18+ installed
+- Claude Desktop installed
+- LinkedIn Talent API credentials (from your company's LinkedIn admin)
 
-### Provider Comparison
+### Steps
 
-| Provider | Setup | Cost | Best For |
-|----------|-------|------|----------|
-| **Proxycurl** | API key only | ~$0.01-0.03/profile | Quick start, most users |
-| **LinkedIn Talent API** | Partnership required | Enterprise | Existing LinkedIn partnership |
-
----
-
-## MCP Tools (9 total)
-
-| Tool | Description |
-|------|-------------|
-| `linkedin_search_candidates` | Search with filters (titles, skills, locations, experience, seniority, companies) |
-| `linkedin_get_candidate_details` | Get full profile with work history, education, skills |
-| `bookmark_candidate` | Save candidate with notes and tags |
-| `remove_bookmark` | Remove from bookmarks |
-| `list_bookmarks` | List all bookmarked candidates |
-| `update_bookmark` | Update notes/tags |
-| `get_bookmark_tags` | Get all unique tags |
-| `export_candidates` | Export to JSON or CSV |
-| `get_provider_status` | Check provider config and credit balance |
-
----
-
-## Quick Start with Proxycurl
-
-### 1. Get Proxycurl API Key
-- Sign up: https://nubela.co/proxycurl
-- Free tier available for testing
-- Pay-as-you-go pricing
-
-### 2. Clone and Build
 ```bash
+# Step 1: Install Homebrew (macOS only, if not installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Step 2: Install Node.js (if not installed)
+brew install node
+
+# Step 3: Verify Node.js installation
+node --version  # Should show v18+ or higher
+npm --version
+
+# Step 4: Clone the repository
 git clone https://github.com/Anishshah2-gmail/candidate-sourcing-mcp.git
 cd candidate-sourcing-mcp
+
+# Step 5: Install dependencies
 npm install
+
+# Step 6: Build the project
 npm run build
+
+# Step 7: Verify build succeeded
+ls dist/index.js  # Should exist
 ```
 
-### 3. Configure Claude Desktop
+### Step 8: Configure Claude Desktop
 
-**File:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+Create/edit the Claude Desktop config file:
+
+**macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+**Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "candidate-sourcing": {
       "command": "node",
-      "args": ["/path/to/candidate-sourcing-mcp/dist/index.js"],
+      "args": ["/full/path/to/candidate-sourcing-mcp/dist/index.js"],
       "env": {
-        "DATA_PROVIDER": "proxycurl",
-        "PROXYCURL_API_KEY": "your_api_key_here"
+        "DATA_PROVIDER": "linkedin",
+        "LINKEDIN_CLIENT_ID": "your_client_id",
+        "LINKEDIN_CLIENT_SECRET": "your_client_secret",
+        "LINKEDIN_ACCESS_TOKEN": "your_access_token",
+        "LINKEDIN_REFRESH_TOKEN": "your_refresh_token"
       }
     }
   }
 }
 ```
 
-### 4. Restart Claude Desktop
+**Important:** Replace `/full/path/to/` with the actual path where you cloned the repo.
+
+### Step 9: Restart Claude Desktop
+
+Completely quit Claude Desktop (Cmd+Q on macOS) and reopen it.
+
+### Step 10: Test
+
+In Claude Desktop, try:
+- "Check my provider status"
+- "Search for 5 Senior Engineers in Bengaluru"
 
 ---
 
-## Proxycurl Credit Costs
+## What You Need from LinkedIn Admin
 
-| Operation | Credits | Notes |
-|-----------|---------|-------|
-| Person Search | 3/result | Includes enriched profile data |
-| Profile Details | 1 | Full profile with work history |
-| Role Lookup | 3 | Find person by role at company |
-| Person Lookup | 2 | Find by name and company |
+Contact your company's LinkedIn Talent Solutions administrator and ask for:
 
-**Pricing tiers:**
-- Pay-as-you-go: $0.018-0.020/credit
-- Monthly plans: $0.009-0.020/credit
-- Enterprise: Custom pricing
+1. **Recruiter System Connect API access** (or similar Talent API)
+2. **API Credentials:**
+   - Client ID
+   - Client Secret
+   - Access Token
+   - Refresh Token (optional but recommended)
 
----
-
-## Switching to LinkedIn Talent API (Future)
-
-When you get LinkedIn Talent API access:
-
-1. Update Claude Desktop config:
-```json
-{
-  "env": {
-    "DATA_PROVIDER": "linkedin",
-    "LINKEDIN_CLIENT_ID": "your_client_id",
-    "LINKEDIN_CLIENT_SECRET": "your_client_secret",
-    "LINKEDIN_ACCESS_TOKEN": "your_access_token",
-    "LINKEDIN_REFRESH_TOKEN": "your_refresh_token"
-  }
-}
-```
-
-2. Restart Claude Desktop
-
-The same tools work with both providers - no code changes needed.
+**Questions to ask:**
+> "Do we have API access to LinkedIn Recruiter System Connect or any LinkedIn Talent APIs? I need Client ID, Client Secret, and Access Token for a recruiting tool integration."
 
 ---
 
-## Files Structure
+## Project Structure
 
 ```
 candidate-sourcing-mcp/
 ├── src/
-│   ├── index.ts                      # Main MCP server
+│   ├── index.ts                    # Main MCP server
 │   ├── types/
-│   │   ├── candidate.ts              # Candidate interfaces
-│   │   └── provider.ts               # Provider interfaces
+│   │   ├── candidate.ts            # Candidate interfaces
+│   │   └── provider.ts             # Provider interfaces
 │   ├── services/
-│   │   ├── provider-factory.ts       # Provider switching logic
-│   │   ├── proxycurl-api.ts          # Proxycurl implementation
-│   │   ├── linkedin-api.ts           # LinkedIn API implementation
-│   │   └── bookmark-store.ts         # Local bookmark storage
+│   │   ├── provider-factory.ts     # Provider switching
+│   │   ├── linkedin-api.ts         # LinkedIn API (active)
+│   │   ├── proxycurl-api.ts        # Proxycurl (deprecated)
+│   │   └── bookmark-store.ts       # Local bookmarks
 │   └── tools/
 │       ├── search-candidates.ts
 │       ├── get-candidate-details.ts
 │       ├── bookmark-candidates.ts
 │       ├── export-candidates.ts
 │       └── provider-status.ts
-├── dist/                             # Compiled JavaScript
+├── dist/                           # Compiled JS (after build)
 ├── package.json
 ├── tsconfig.json
-├── .env.example
 └── README.md
 ```
 
 ---
 
-## Next Session Checklist
+## MCP Tools Available (9 total)
 
-- [ ] Sign up for Proxycurl at https://nubela.co/proxycurl
-- [ ] Get API key from Proxycurl dashboard
-- [ ] Update Claude Desktop config with API key
-- [ ] Restart Claude Desktop
-- [ ] Test with: "Check my provider status"
-- [ ] Test search: "Find 5 Senior Engineers in Bengaluru"
+| Tool | Description |
+|------|-------------|
+| `linkedin_search_candidates` | Search with filters |
+| `linkedin_get_candidate_details` | Full profile details |
+| `bookmark_candidate` | Save with notes/tags |
+| `remove_bookmark` | Remove bookmark |
+| `list_bookmarks` | List all bookmarks |
+| `update_bookmark` | Update notes/tags |
+| `get_bookmark_tags` | Get all tags |
+| `export_candidates` | Export JSON/CSV |
+| `get_provider_status` | Check config status |
 
 ---
 
 ## Commands Reference
 
 ```bash
-# Clone from any device
-git clone https://github.com/Anishshah2-gmail/candidate-sourcing-mcp.git
-
-# Install and build
-cd candidate-sourcing-mcp
-npm install
-npm run build
-
 # Development
 npm run dev        # Watch mode
+npm run build      # Production build
 npm run inspector  # Test with MCP Inspector
+
+# Git
+git pull           # Get latest changes
+git status         # Check for changes
 ```
 
 ---
 
 ## Troubleshooting
 
-**Provider not configured:**
-- Verify API key in Claude Desktop config
-- Check spelling of environment variable names
+**"Provider not configured"**
+- Verify credentials in Claude Desktop config
+- Check `DATA_PROVIDER` is set to `linkedin`
 - Restart Claude Desktop
 
-**Rate limit exceeded:**
-- Wait before making more requests
-- Reduce page_size in searches
+**"Cannot find module" error**
+- Run `npm run build` again
+- Check the path in Claude Desktop config is correct
 
-**Search returns no results:**
-- Try broader search criteria
-- Check if location format is correct (e.g., "Bengaluru, India")
+**Changes not taking effect**
+- Completely quit Claude Desktop (not just close window)
+- Reopen Claude Desktop
+
+---
+
+## Next Steps
+
+1. [ ] Get LinkedIn Talent API credentials from company admin
+2. [ ] Update Claude Desktop config with real credentials
+3. [ ] Restart Claude Desktop
+4. [ ] Test with: "Check my provider status"
+5. [ ] Test search: "Find 5 Senior Engineers in Bengaluru"
